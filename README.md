@@ -3,7 +3,7 @@ Logo DYS (Dokuman Yonetim Sistemi) API Python Implementation
 
 #### Quick Start
 
-```
+```Python
 from dys_connector.dys_api_manager import DYSManager
 import json
 

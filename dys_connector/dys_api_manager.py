@@ -56,7 +56,7 @@ class DYSManager:
             "Authorization": "Bearer " + self.TOKEN,
         }
 
-    def get_url(self, task):
+    def get_url(self, task: str):
         """
         :param task: task name
         :return: string. Returns the endpoint for a specific task
@@ -108,11 +108,11 @@ class DYSManager:
 
         return None
 
-    def post_content(self, parent_folder_cid, payload, files):
+    def post_content(self, parent_folder_cid: str, payload: dict, files: list):
         """
         :param parent_folder_cid: Parent folder cid that document will be uploaded
-        :param payload:
-        :param files:
+        :param payload: A dict that contains "uploadDocumentDTO". Ex: {"uploadDocumentDTO": ''}
+        :param files: File list. Ex: [("file", (doc["filename"], doc["file"], "text/html"))]
         :return: :class:`Response <Response>` object
         """
         url = self.get_url("UPLOAD") + "?parentFolderCid=" + parent_folder_cid
@@ -135,11 +135,11 @@ class DYSManager:
         dir_list = json.loads(res.text)
         return dir_list
 
-    def get_doc_metadata(self, doc_cid):
+    def get_doc_metadata(self, doc_cid: str):
         """
         Get Metadata of a Document
         :param doc_cid: Document Cid
-        :return:
+        :return: Returns a dict that contains document metadata
         """
         url = self.get_url("GET_DOC_META").format(doc_cid)
         headers = self.HEADERS
@@ -164,10 +164,9 @@ class DYSManager:
             "Authorization": "Bearer " + self.TOKEN,
         }
         res = self.make_dys_request("PUT", url, headers=headers, data=payload)
-        # print(res.status_code, res.text)
         return res
 
-    def get_document_without_content(self, doc_cid):
+    def get_document_without_content(self, doc_cid: str):
         """
         Get document information and details from DYS. (Not Document Content!)
         :param doc_cid: Document Cid
@@ -180,7 +179,7 @@ class DYSManager:
         document = json.loads(res.text)
         return document
 
-    def generate_external_share(self, doc_cid, hide_name: bool = True, doc_name: str = "string", dur_day: int = 0,
+    def generate_external_share(self, doc_cid: str, hide_name: bool = True, doc_name: str = "string", dur_day: int = 0,
                                 email_list: list = ["string"], idm_ex_share: bool = True, ignore_kafka: bool = True):
         """
         Generate external share url for a document.
@@ -205,7 +204,7 @@ class DYSManager:
         external_url = value["externalShareMailLinkMap"]["string"] + "&hideName={}".format(hide_name)
         return external_url
 
-    def get_document_content(self, doc_cid):
+    def get_document_content(self, doc_cid: str):
         """
         Get content of a document from DYS.
         :param doc_cid: Document Cid
@@ -218,7 +217,7 @@ class DYSManager:
         value = response.text
         return value
 
-    def copy_document(self, doc_cid, parent_folder_cid=None):
+    def copy_document(self, doc_cid: str, parent_folder_cid: str = None):
         """
         Copy a document to the root or a specified location
         :param doc_cid: Document Cid
@@ -231,7 +230,7 @@ class DYSManager:
         res = self.make_dys_request("POST", url)
         return res
 
-    def rename_document(self, doc_cid, name):
+    def rename_document(self, doc_cid: str, name: str):
         """
         Rename a document
         :param doc_cid: Document Cid

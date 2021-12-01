@@ -1,15 +1,22 @@
 from setuptools import setup, find_packages
+import pathlib
 
-VERSION = '0.1.0'
-DESCRIPTION = 'Logo DYS Connector'
-LONG_DESCRIPTION = 'Logo DYS(Doküman Yönetim Sistemi) API Python Implementation'
+VERSION = '0.1.1'
+DESCRIPTION = 'Logo DYS Connector API Python Implementation'
+
+# The directory containing this file
+HERE = pathlib.Path(__file__).parent
+
+# The text of the README file
+README = (HERE / "README.md").read_text()
 
 setup(
     name='dys-connector',
     version=VERSION,
     packages=find_packages(exclude=['tests*']),
     description=DESCRIPTION,
-    long_description=LONG_DESCRIPTION,
+    long_description=README,
+    long_description_content_type="text/markdown",
     setup_requires=['wheel'],
     install_requires=['requests'],
     url='https://github.com/logo-group/dys-connector',

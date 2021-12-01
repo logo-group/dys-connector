@@ -1,5 +1,5 @@
 # dys-connector
-Logo DYS (Doküman Yönetim Sitemi) API Python Implementation
+Logo DYS (Dokuman Yonetim Sistemi) API Python Implementation
 
 #### Quick Start
 

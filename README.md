@@ -1,6 +1,8 @@
 # dys-connector
 Logo DYS (Dokuman Yonetim Sistemi) API Python Implementation
 
+Python Package: https://pypi.org/project/dys-connector
+
 #### Quick Start
 
 ```Python

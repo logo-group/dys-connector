@@ -93,7 +93,7 @@ class DYSManager:
         :return: :class:`Response <Response>` object
         """
         if not headers:
-            headers = self.HEADERS
+            headers = self.HEADERS.copy()
         try:
             response = requests.request(method, url, headers=headers, **kwargs)
             return response
@@ -116,6 +116,8 @@ class DYSManager:
         :return: :class:`Response <Response>` object
         """
         url = self.get_url("UPLOAD") + "?parentFolderCid=" + parent_folder_cid
+        headers = self.HEADERS.copy()
+        headers["Content-Type"] = "multipart/form-data"
         response = self.make_dys_request("POST", url, data=payload, files=files)
         return response
 
@@ -129,7 +131,7 @@ class DYSManager:
         :return: List of Dicts. Each dict refers the basic information of a document.
         """
         url = self.get_url("DIR_STRUCTURE") + '?folderCid={}&from={}&size={}&containerType={}'.format(folder_cid, _from, _to, cont_type.name)
-        headers = self.HEADERS
+        headers = self.HEADERS.copy()
         headers["Content-Type"] = "application/json"
         res = self.make_dys_request("GET", url, headers=headers)
         dir_list = json.loads(res.text)
@@ -142,7 +144,7 @@ class DYSManager:
         :return: Returns a dict that contains document metadata
         """
         url = self.get_url("GET_DOC_META").format(doc_cid)
-        headers = self.HEADERS
+        headers = self.HEADERS.copy()
         headers["Content-Type"] = "application/json"
         res = json.loads(self.make_dys_request("GET", url, headers=headers).text)
         metadata = res["varValues"]
@@ -173,7 +175,7 @@ class DYSManager:
         :return: dict: Document details
         """
         url = self.get_url("GET_DOC_INFO").format(doc_cid)
-        headers = self.HEADERS
+        headers = self.HEADERS.copy()
         headers["Content-Type"] = "application/json"
         res = self.make_dys_request("GET", url, headers=headers)
         document = json.loads(res.text)
@@ -193,7 +195,7 @@ class DYSManager:
         :return: External share url string
         """
         url = self.get_url("EXTERNAL_SHARE").format(doc_cid)
-        headers = self.HEADERS
+        headers = self.HEADERS.copy()
         headers["Content-Type"] = "application/json;charset=UTF-8"
 
         payload = {"documentName": doc_name, "durationDay": dur_day, "emailList": email_list,
@@ -211,7 +213,7 @@ class DYSManager:
         :return: str: Document content
         """
         url = self.get_url("DOC_CONTENT").format(doc_cid)
-        headers = self.HEADERS
+        headers = self.HEADERS.copy()
         headers["Content-Type"] = "application/json"
         response = self.make_dys_request("GET", url, headers=headers)
         value = response.text

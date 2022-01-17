@@ -94,7 +94,7 @@ class DYSManager:
             raise DysUnauthorizedError()
         elif code == 500:
             raise DysInternalServerError()
-        elif (code/100) != 2:
+        elif int(code/100) != 2:
             raise DysHttpException(status_code=code)
 
     def make_dys_request(self, method: str, url: str, headers=None, **kwargs):

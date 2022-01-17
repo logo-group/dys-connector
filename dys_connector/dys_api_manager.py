@@ -1,19 +1,22 @@
 import requests
 import json
 from enum import Enum
+from dys_connector.exceptions import DysHttpException, DysBadRequestError, DysInternalServerError, DysUnauthorizedError
 
 # Used endpoints of DYS
 ENDPOINTS = {
-    "COPY": "/api/v2.0/document/copy/{}",
-    "RENAME": "/api/v2.0/document/rename/{}",
+    "COPY": "/api/v2.0/document/copy/{cid}",
+    "RENAME": "/api/v2.0/document/rename/{cid}",
     "UPLOAD": "/api/v2.0/document/uploadDocument",
     "STATE": "/api/diagnose",
     "DIR_STRUCTURE": "/api/v2.0/document/directoryStructure",
-    "GET_DOC_META": "/api/v2.0/document/viewDocumentMetadata/{}",
-    "UPDATE_DOC_META": "/api/v2.0/document/updateMetadata/{}",
-    "GET_DOC_INFO": "/api/v2.0/document/getDocumentWithoutContent/{}",
-    "EXTERNAL_SHARE": "/api/v2.0/document/externalShare/{}",
-    "DOC_CONTENT": "/api/v2.0/document/content/{}"
+    "GET_DOC_META": "/api/v2.0/document/viewDocumentMetadata/{cid}",
+    "UPDATE_DOC_META": "/api/v2.0/document/updateMetadata/{cid}",
+    "GET_DOC_INFO": "/api/v2.0/document/getDocumentWithoutContent/{cid}",
+    "EXTERNAL_SHARE": "/api/v2.0/document/externalShare/{cid}",
+    "DOC_CONTENT": "/api/v2.0/document/content/{cid}",
+    "DELETE": "/api/v2.0/document/delete/{cid}",
+    "DELETE_PERMA": "/api/v2.0/document/deletePermanently/{cid}"
 }
 
 
@@ -83,6 +86,17 @@ class DYSManager:
             return status_dict["state"]
         return res
 
+    def check_dys_exception(self, response: requests.Response):
+        code = response.status_code
+        if code == 400:
+            raise DysBadRequestError()
+        elif code == 401:
+            raise DysUnauthorizedError()
+        elif code == 500:
+            raise DysInternalServerError()
+        elif (code/100) != 2:
+            raise DysHttpException(status_code=code)
+
     def make_dys_request(self, method: str, url: str, headers=None, **kwargs):
         """
         General DYS requests with basic error handling
@@ -96,6 +110,7 @@ class DYSManager:
             headers = self.HEADERS.copy()
         try:
             response = requests.request(method, url, headers=headers, **kwargs)
+            self.check_dys_exception(response)
             return response
         except requests.exceptions.HTTPError as errh:
             print("Http Error:", errh)
@@ -130,7 +145,7 @@ class DYSManager:
         :param cont_type: Container type defaults to SPACE
         :return: List of Dicts. Each dict refers the basic information of a document.
         """
-        url = self.get_url("DIR_STRUCTURE") + '?folderCid={}&from={}&size={}&containerType={}'.format(folder_cid, _from, _to, cont_type.name)
+        url = self.get_url("DIR_STRUCTURE") + f'?folderCid={folder_cid}&from={_from}&size={_to}&containerType={cont_type.name} '
         headers = self.HEADERS.copy()
         headers["Content-Type"] = "application/json"
         res = self.make_dys_request("GET", url, headers=headers)
@@ -143,7 +158,7 @@ class DYSManager:
         :param doc_cid: Document Cid
         :return: Returns a dict that contains document metadata
         """
-        url = self.get_url("GET_DOC_META").format(doc_cid)
+        url = self.get_url("GET_DOC_META").format(cid=doc_cid)
         headers = self.HEADERS.copy()
         headers["Content-Type"] = "application/json"
         res = json.loads(self.make_dys_request("GET", url, headers=headers).text)
@@ -158,7 +173,7 @@ class DYSManager:
         :param doc_type_id: Document type id that refers to metadata group.
         :return: Updated document Cid
         """
-        url = self.get_url("UPDATE_DOC_META").format(doc_cid)
+        url = self.get_url("UPDATE_DOC_META").format(cid=doc_cid)
         pay_dict = {"documentTypeIds": [], "tagIds": [doc_type_id], "varValues": metadata}
         payload = json.dumps(pay_dict).encode("utf-8")
         headers = {
@@ -174,7 +189,7 @@ class DYSManager:
         :param doc_cid: Document Cid
         :return: dict: Document details
         """
-        url = self.get_url("GET_DOC_INFO").format(doc_cid)
+        url = self.get_url("GET_DOC_INFO").format(cid=doc_cid)
         headers = self.HEADERS.copy()
         headers["Content-Type"] = "application/json"
         res = self.make_dys_request("GET", url, headers=headers)
@@ -194,7 +209,7 @@ class DYSManager:
         :param ignore_kafka: Ignore Kafka settings defaults to True
         :return: External share url string
         """
-        url = self.get_url("EXTERNAL_SHARE").format(doc_cid)
+        url = self.get_url("EXTERNAL_SHARE").format(cid=doc_cid)
         headers = self.HEADERS.copy()
         headers["Content-Type"] = "application/json;charset=UTF-8"
 
@@ -206,13 +221,13 @@ class DYSManager:
         external_url = value["externalShareMailLinkMap"]["string"] + "&hideName={}".format(hide_name)
         return external_url
 
-    def get_document_content(self, doc_cid: str):
+    def get_document_content(self, doc_cid: str) -> str:
         """
         Get content of a document from DYS.
         :param doc_cid: Document Cid
         :return: str: Document content
         """
-        url = self.get_url("DOC_CONTENT").format(doc_cid)
+        url = self.get_url("DOC_CONTENT").format(cid=doc_cid)
         headers = self.HEADERS.copy()
         headers["Content-Type"] = "application/json"
         response = self.make_dys_request("GET", url, headers=headers)
@@ -226,7 +241,7 @@ class DYSManager:
         :param parent_folder_cid: (Optional) Target folder Cid that document will be copied. If none, target is root.
         :return: Cid of the new document.
         """
-        url = end_point = self.get_url("COPY").format(doc_cid)
+        url = end_point = self.get_url("COPY").format(cid=doc_cid)
         if parent_folder_cid:
             url = end_point + "?targetFolderCid=" + parent_folder_cid
         res = self.make_dys_request("POST", url)
@@ -239,7 +254,29 @@ class DYSManager:
         :param name: New name of the document
         :return: Cid of the renamed document
         """
-        end_point = self.get_url("RENAME").format(doc_cid)
+        end_point = self.get_url("RENAME").format(cid=doc_cid)
         url = end_point + "?fileName=" + name
         res = self.make_dys_request("POST", url)
         return res
+
+    def delete(self, cid: str) -> requests.Response:
+        """
+        Delete and send a document or folder to recycle.
+        :param cid: Dys Cid
+        :return: Request Response
+        """
+        url = self.get_url("DELETE").format(cid=cid)
+        res = self.make_dys_request(method="DELETE", url=url)
+        return res
+
+    def delete_permanently(self, cid: str) -> requests.Response:
+        """
+        Delete a document or folder permanently.
+        :param cid: Dys Cid
+        :return: Request Response
+        """
+        url = self.get_url("DELETE_PERMA").format(cid=cid)
+        res = self.make_dys_request(method="DELETE", url=url)
+        return res
+
+

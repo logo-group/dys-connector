@@ -12,7 +12,7 @@ import json
 idm_token = "XXXXXXXXXXXXXXXXXXXXXX"
 dys_base_url = "https://DYS_BASE_URL"
 
-manager = DYSManager(dys_base_url, TOKEN)
+manager = DYSManager(dys_base_url, idm_token)
 
 # Check state of DYS. FINE-WARNING-FAILURE
 state = manager.check_state()

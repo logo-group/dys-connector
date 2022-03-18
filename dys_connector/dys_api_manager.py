@@ -94,7 +94,7 @@ class DYSManager:
             raise DysUnauthorizedError()
         elif code == 500:
             raise DysInternalServerError()
-        elif int(code/100) != 2:
+        elif int(code / 100) != 2:
             raise DysHttpException(status_code=code)
 
     def make_dys_request(self, method: str, url: str, headers=None, **kwargs):
@@ -136,7 +136,8 @@ class DYSManager:
         response = self.make_dys_request("POST", url, data=payload, files=files)
         return response
 
-    def get_dir_structure(self, folder_cid: str, _from: int = 0, _to: int = 10000, cont_type: Container = Container.SPACE):
+    def get_dir_structure(self, folder_cid: str, _from: int = 0, _to: int = 10000,
+                          cont_type: Container = Container.SPACE):
         """
         Get content list of a directory.
         :param folder_cid: Directory Cid
@@ -145,7 +146,8 @@ class DYSManager:
         :param cont_type: Container type defaults to SPACE
         :return: List of Dicts. Each dict refers the basic information of a document.
         """
-        url = self.get_url("DIR_STRUCTURE") + f'?folderCid={folder_cid}&from={_from}&size={_to}&containerType={cont_type.name} '
+        url = self.get_url(
+            "DIR_STRUCTURE") + f'?folderCid={folder_cid}&from={_from}&size={_to}&containerType={cont_type.name} '
         headers = self.HEADERS.copy()
         headers["Content-Type"] = "application/json"
         res = self.make_dys_request("GET", url, headers=headers)
@@ -234,17 +236,22 @@ class DYSManager:
         value = response.text
         return value
 
-    def copy_document(self, doc_cid: str, parent_folder_cid: str = None):
+    def copy_document(self, doc_cid: str, parent_folder_cid: str = None, x_lang: str = None):
         """
         Copy a document to the root or a specified location
         :param doc_cid: Document Cid
         :param parent_folder_cid: (Optional) Target folder Cid that document will be copied. If none, target is root.
+        :param x_lang: (Optional) Copy Language Parameter. Ex: tr_TR or en_US. This decides if new document name comes with Copy of or - Kopya
         :return: Cid of the new document.
         """
         url = end_point = self.get_url("COPY").format(cid=doc_cid)
+        headers = self.HEADERS.copy()
+        headers["Content-Type"] = "application/json"
+        if x_lang:
+            headers["X-Lang"] = x_lang
         if parent_folder_cid:
             url = end_point + "?targetFolderCid=" + parent_folder_cid
-        res = self.make_dys_request("POST", url)
+        res = self.make_dys_request("POST", url, headers)
         return res
 
     def rename_document(self, doc_cid: str, name: str):
@@ -292,6 +299,3 @@ class DYSManager:
             except Exception as e:
                 print("Clear Directory Item Delete Exception", e)
         return cid
-
-
-

@@ -21,7 +21,7 @@ class DysBadRequestError(DysHttpException):
 
 
 class DysUnauthorizedError(DysHttpException):
-    """Raised when Dys Http unauthorized error occurs with error code 403"""
+    """Raised when Dys Http unauthorized error occurs with error code 401"""
     def __init__(self, message="Dys Unauthorized Error!"):
         self.status_code = 401
         self.message = message

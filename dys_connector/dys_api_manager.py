@@ -295,7 +295,8 @@ class DYSManager:
         dir_list = self.get_dir_structure(folder_cid=cid, cont_type=Container.DIRECTORY)
         for item in dir_list:
             try:
-                self.delete_permanently(item["cid"])
+                res = self.delete(item["cid"])
+
             except Exception as e:
                 print("Clear Directory Item Delete Exception", e)
         return cid

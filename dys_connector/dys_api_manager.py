@@ -220,7 +220,8 @@ class DYSManager:
         payload = json.dumps(payload)
         response = requests.request("POST", url, headers=headers, data=payload)
         value = json.loads(response.text)
-        external_url = value["externalShareMailLinkMap"]["string"] + "&hideName={}".format(hide_name)
+        external_url = value["externalShareMailLinkMap"][
+                           next(iter(value["externalShareMailLinkMap"]))] + "&hideName={}".format(hide_name)
         return external_url
 
     def get_document_content(self, doc_cid: str) -> str:

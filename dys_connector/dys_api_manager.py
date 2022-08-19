@@ -1,7 +1,7 @@
 import requests
 import json
 from enum import Enum
-from dys_connector.exceptions import DysHttpException, DysBadRequestError, DysInternalServerError, DysUnauthorizedError
+from dys_connector.exceptions import *
 
 # Used endpoints of DYS
 ENDPOINTS = {
@@ -61,32 +61,15 @@ class DYSManager:
 
     def get_url(self, task: str):
         """
+        Generates the domain appropriate url
         :param task: task name
         :return: string. Returns the endpoint for a specific task
         :exception: KeyError if task not exist
         """
         return self.dys_base_url + ENDPOINTS[task]
 
-    def check_state(self):
-        """
-        Check for DYS Application State
-        :return: state
-            Possible values for global “state”
-                FINE: All diagnose methods ended with success.
-                WARNING: A non-mandatory diagnose method FAILed.
-                FAILURE:  A mandatory diagnose method FAILed.
-            If request is not successful, returns response text.
-        """
-        url = self.get_url("STATE")
-        res = self.make_dys_request("GET", url=url, headers={})
-        if res.status_code not in [200, 202]:
-            return res.text
-        status_dict = json.loads(res.text)
-        if "state" in status_dict.keys():
-            return status_dict["state"]
-        return res
-
-    def check_dys_exception(self, response: requests.Response):
+    @staticmethod
+    def check_dys_exception(response: requests.Response):
         code = response.status_code
         if code == 400:
             raise DysBadRequestError()
@@ -108,23 +91,32 @@ class DYSManager:
         """
         if not headers:
             headers = self.HEADERS.copy()
-        try:
-            response = requests.request(method, url, headers=headers, **kwargs)
-            self.check_dys_exception(response)
-            return response
-        except requests.exceptions.HTTPError as errh:
-            print("Http Error:", errh)
-        except requests.exceptions.ConnectionError as errc:
-            print("Error Connecting:", errc)
-        except requests.exceptions.Timeout as errt:
-            print("Timeout Error:", errt)
-        except requests.exceptions.RequestException as err:
-            print("RequestException:", err)
+        response = requests.request(method, url, headers=headers, **kwargs)
+        self.check_dys_exception(response)
+        return response
 
-        return None
+    def check_state(self):
+        """
+        Check for DYS Application State
+        :return: state
+            Possible values for global “state”
+                FINE: All diagnose methods ended with success.
+                WARNING: A non-mandatory diagnose method FAILed.
+                FAILURE:  A mandatory diagnose method FAILed.
+            If request is not successful, returns response text.
+        """
+        url = self.get_url("STATE")
+        res = self.make_dys_request("GET", url=url, headers={})
+        if res.status_code not in [200, 202]:
+            return res.text
+        status_dict = json.loads(res.text)
+        if "state" in status_dict.keys():
+            return status_dict["state"]
+        return res
 
     def post_content(self, parent_folder_cid: str, payload: dict, files: list):
         """
+        Uploads document to DYS
         :param parent_folder_cid: Parent folder cid that document will be uploaded
         :param payload: A dict that contains "uploadDocumentDTO". Ex: {"uploadDocumentDTO": ''}
         :param files: File list. Ex: [("file", (doc["filename"], doc["file"], "text/html"))]
@@ -214,11 +206,10 @@ class DYSManager:
         url = self.get_url("EXTERNAL_SHARE").format(cid=doc_cid)
         headers = self.HEADERS.copy()
         headers["Content-Type"] = "application/json;charset=UTF-8"
-
         payload = {"documentName": doc_name, "durationDay": dur_day, "emailList": email_list,
                    "idmExternalShare": str(idm_ex_share).lower(), "ignoreKafka": str(ignore_kafka).lower()}
         payload = json.dumps(payload)
-        response = requests.request("POST", url, headers=headers, data=payload)
+        response = self.make_dys_request("POST", url, headers=headers, data=payload)
         value = json.loads(response.text)
         external_url = value["externalShareMailLinkMap"][
                            next(iter(value["externalShareMailLinkMap"]))] + "&hideName={}".format(hide_name)
@@ -242,7 +233,8 @@ class DYSManager:
         Copy a document to the root or a specified location
         :param doc_cid: Document Cid
         :param parent_folder_cid: (Optional) Target folder Cid that document will be copied. If none, target is root.
-        :param x_lang: (Optional) Copy Language Parameter. Ex: tr_TR or en_US. This decides if new document name comes with Copy of or - Kopya
+        :param x_lang: (Optional) Copy Language Parameter. Ex: tr_TR or en_US. This decides if new document name
+        comes with Copy of or - Kopya
         :return: Cid of the new document.
         """
         url = end_point = self.get_url("COPY").format(cid=doc_cid)
@@ -296,8 +288,7 @@ class DYSManager:
         dir_list = self.get_dir_structure(folder_cid=cid, cont_type=Container.DIRECTORY)
         for item in dir_list:
             try:
-                res = self.delete(item["cid"])
-
+                self.delete(item["cid"])
             except Exception as e:
-                print("Clear Directory Item Delete Exception", e)
+                raise DysClearDirectoryItemDeleteException()
         return cid

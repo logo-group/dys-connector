@@ -34,3 +34,11 @@ class DysInternalServerError(DysHttpException):
         self.status_code = 500
         self.message = message
         super().__init__(status_code=self.status_code, message=message)
+
+
+class DysClearDirectoryItemDeleteException(DysHttpException):
+    """Raised when Dys Internal Server Error occurs with error code 500"""
+    def __init__(self, message="Clear Directory Item Delete Exception"):
+        self.status_code = 500
+        self.message = message
+        super().__init__(status_code=self.status_code, message=message)

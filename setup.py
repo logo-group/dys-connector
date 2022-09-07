@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import pathlib
 
-VERSION = '0.2.6'
+VERSION = '0.2.7'
 DESCRIPTION = 'Logo DYS Connector API Python Implementation'
 
 # The directory containing this file
@@ -20,6 +20,6 @@ setup(
     setup_requires=['wheel'],
     install_requires=['requests'],
     url='https://github.com/logo-group/dys-connector',
-    author='Mustafa Talha Arslan, Furkan Arif Bozdag',
-    author_email='mustafa.arslan@logo.com.tr, arif.bozdag@logo.com.tr'
+    author='Mustafa Talha Arslan, Furkan Arif Bozdag, Hilal Ozkan',
+    author_email='mustafa.arslan@logo.com.tr, arif.bozdag@logo.com.tr, hilal.ozkan@logo.com.tr'
 )

@@ -7,7 +7,8 @@ from dys_connector.exceptions import *
 ENDPOINTS = {
     "COPY": "/api/v2.0/document/copy/{cid}",
     "RENAME": "/api/v2.0/document/rename/{cid}",
-    "UPLOAD": "/api/v2.0/document/uploadDocument",
+    "UPLOAD_DOCUMENT": "/api/v2.0/document/uploadDocument",
+    "UPLOAD_FOLDER": "/api/v2.0/document/uploadFolder",
     "STATE": "/api/diagnose",
     "DIR_STRUCTURE": "/api/v2.0/document/directoryStructure",
     "GET_DOC_META": "/api/v2.0/document/viewDocumentMetadata/{cid}",
@@ -114,6 +115,20 @@ class DYSManager:
             return status_dict["state"]
         return res
 
+    def post_folder(self, parent_folder_cid: str, folder_name: str):
+        """
+        Upload folders to DYS
+        :param parent_folder_cid: Parent folder cid that document will be uploaded
+        :param folder_name: Parent folder name of folders in folders list
+        :return: New folder's cid
+        """
+        url = self.get_url("UPLOAD_FOLDER") + "?parentFolderCid=" + parent_folder_cid + "&folderName=" + folder_name
+        headers = self.HEADERS.copy()
+        headers["Content-Type"] = "application/json;charset=UTF-8"
+        response = self.make_dys_request("POST", url, headers=headers)
+        value_parent = json.loads(response.text)
+        return value_parent["cid"]
+
     def post_content(self, parent_folder_cid: str, payload: dict, files: list):
         """
         Uploads document to DYS
@@ -122,7 +137,7 @@ class DYSManager:
         :param files: File list. Ex: [("file", (doc["filename"], doc["file"], "text/html"))]
         :return: :class:`Response <Response>` object
         """
-        url = self.get_url("UPLOAD") + "?parentFolderCid=" + parent_folder_cid
+        url = self.get_url("UPLOAD_DOCUMENT") + "?parentFolderCid=" + parent_folder_cid
         headers = self.HEADERS.copy()
         headers["Content-Type"] = "multipart/form-data"
         response = self.make_dys_request("POST", url, data=payload, files=files)

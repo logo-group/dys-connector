@@ -1,3 +1,5 @@
+import logging
+
 import requests
 import json
 from enum import Enum
@@ -72,6 +74,8 @@ class DYSManager:
     @staticmethod
     def check_dys_exception(response: requests.Response):
         code = response.status_code
+        logging.debug(code)
+        logging.debug(response.text)
         if code == 400:
             raise DysBadRequestError()
         elif code == 401:

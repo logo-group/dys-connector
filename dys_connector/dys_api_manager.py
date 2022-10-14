@@ -82,6 +82,8 @@ class DYSManager:
             raise DysUnauthorizedError()
         elif code == 500:
             raise DysInternalServerError()
+        elif code == 502:
+            raise DysBadGatewayError()
         elif int(code / 100) != 2:
             raise DysHttpException(status_code=code)
 

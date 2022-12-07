@@ -249,11 +249,13 @@ class DYSManager:
         value = response.text
         return value
 
-    def copy_document(self, doc_cid: str, parent_folder_cid: str = None, x_lang: str = None):
+    def copy_document(self, doc_cid: str, parent_folder_cid: str = None, x_lang: str = None,
+                      add_copy_of_prefix: bool = False):
         """
         Copy a document to the root or a specified location
         :param doc_cid: Document Cid
         :param parent_folder_cid: (Optional) Target folder Cid that document will be copied. If none, target is root.
+        :param add_copy_of_prefix: (Optional) Determines if name prefix (Copy-of) added to copied items.
         :param x_lang: (Optional) Copy Language Parameter. Ex: tr_TR or en_US. This decides if new document name
         comes with Copy of or - Kopya
         :return: Cid of the new document.
@@ -263,9 +265,10 @@ class DYSManager:
         headers["Content-Type"] = "application/json"
         if x_lang:
             headers["X-Lang"] = x_lang
+        params = {"addCopyOfPrefix": add_copy_of_prefix}
         if parent_folder_cid:
-            url = end_point + "?targetFolderCid=" + parent_folder_cid
-        res = self.make_dys_request("POST", url, headers)
+            params.update({"targetFolderCid": parent_folder_cid})
+        res = self.make_dys_request("POST", url, headers, params=params)
         return res
 
     def rename_document(self, doc_cid: str, name: str):

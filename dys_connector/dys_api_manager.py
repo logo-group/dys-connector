@@ -4,6 +4,7 @@ import requests
 import json
 from enum import Enum
 from dys_connector.exceptions import *
+from dys_connector.dto import VerificationType
 
 # Used endpoints of DYS
 ENDPOINTS = {
@@ -211,24 +212,47 @@ class DYSManager:
         document = json.loads(res.text)
         return document
 
-    def generate_external_share(self, doc_cid: str, hide_name: bool = True, doc_name: str = "string", dur_day: int = 0,
-                                email_list: list = ["string"], idm_ex_share: bool = True, ignore_kafka: bool = True):
+    def generate_external_share(self, doc_cid: str, hide_name: bool = True,
+                                role_id_list: list = [],
+                                disposable: bool = False,
+                                download_disabled: bool = False,
+                                duration_day: int = 0,
+                                idm_external_share: bool = True,
+                                verification_type: int = VerificationType.NONE
+                                ):
         """
         Generate external share url for a document.
         :param doc_cid: Document Cid
         :param hide_name: bool: Hide document name on external share.
-        :param doc_name: id for external share
-        :param dur_day: External share duration as day, default 0 refers to limitless.
-        :param email_list: Shared users' emails
-        :param idm_ex_share: IDM External Share defaults to True
-        :param ignore_kafka: Ignore Kafka settings defaults to True
+        :param role_id_list:
+        :param disposable:
+        :param download_disabled:
+        :param duration_day: External share duration as day, default 0 refers to limitless.
+        :param idm_external_share: IDM External Share defaults to True
+        :param verification_type:
         :return: External share url string
+
+        Args:
+            role_id_list:
         """
         url = self.get_url("EXTERNAL_SHARE").format(cid=doc_cid)
         headers = self.HEADERS.copy()
         headers["Content-Type"] = "application/json;charset=UTF-8"
-        payload = {"documentName": doc_name, "durationDay": dur_day, "emailList": email_list,
-                   "idmExternalShare": str(idm_ex_share).lower(), "ignoreKafka": str(ignore_kafka).lower()}
+        payload = {
+            "authorizationRoleList": role_id_list,
+            "cancelled": "false",
+            "disposable": str(disposable).lower(),
+            "downloadDisabled": str(download_disabled).lower(),
+            "durationDay": duration_day,
+            "idmExternalShare": str(idm_external_share).lower(),
+            "ignoreKafka": "true",
+            "linkShare": "false",
+            "passwordProtected": "false",
+            "uploadEnabled": "false",
+            "verificationType": verification_type.value[0]
+        }
+        if len(role_id_list) == 0:
+            del payload['authorizationRoleList']
         payload = json.dumps(payload)
         response = self.make_dys_request("POST", url, headers=headers, data=payload)
         value = json.loads(response.text)

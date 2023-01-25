@@ -11,7 +11,7 @@ DOC_CID = os.environ['DOC_CID']
 class TestIntegration(TestCase):
     def test_generate_external_share(self):
         manager = DYSManager(DYS_ENDPOINT, DYS_TOKEN)
-        external_url = manager.generate_external_share(DOC_CID, idm_ex_share=False)
+        external_url = manager.generate_external_share(DOC_CID)
         self.assertIn(DOC_CID, external_url)
 
     def test_clear_directory(self):

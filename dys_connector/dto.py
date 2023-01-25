@@ -30,7 +30,7 @@ class VarValues(BaseModel):
 
 
 class UploadDocumentDTO:
-    def __init__(self, name, tag_ids=None, var_values: VarValues = VarValues().dict()):
+    def __init__(self, name, tag_ids=None, var_values: VarValues = VarValues()):
         if tag_ids is None:
             tag_ids = KISISEL_BELGE
         self.name = name

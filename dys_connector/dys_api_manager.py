@@ -212,6 +212,20 @@ class DYSManager:
         document = json.loads(res.text)
         return document
 
+    def get_external_share(self, doc_cid: str, hide_name: bool = True) -> list:
+        """
+        Get existing external share url for a document.
+        :param doc_cid: Document Cid
+        :param hide_name: bool: Hide document name on external share.
+        :return: External share url string
+        """
+        url = self.get_url("EXTERNAL_SHARE").format(cid=doc_cid)
+        headers = self.HEADERS.copy()
+        headers["Content-Type"] = "application/json;charset=UTF-8"
+        response = self.make_dys_request("GET", url, headers=headers)
+        value = json.loads(response.text)
+        return list(map(lambda link: link + "&hideName={}".format(hide_name), (item['shareLink'] for item in value)))
+
     def generate_external_share(self, doc_cid: str, hide_name: bool = True,
                                 role_id_list: list = [],
                                 disposable: bool = False,
@@ -231,9 +245,6 @@ class DYSManager:
         :param idm_external_share: IDM External Share defaults to True
         :param verification_type:
         :return: External share url string
-
-        Args:
-            role_id_list:
         """
         url = self.get_url("EXTERNAL_SHARE").format(cid=doc_cid)
         headers = self.HEADERS.copy()

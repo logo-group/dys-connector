@@ -1,10 +1,12 @@
-import logging
-
-import requests
 import json
+import logging
+import requests
+import dys_connector.exceptions as dys_exc
+
 from enum import Enum
-from dys_connector.exceptions import *
 from dys_connector.dto import VerificationType
+
+DEFAULT_HEADER = "application/json"
 
 # Used endpoints of DYS
 ENDPOINTS = {
@@ -52,7 +54,7 @@ class DYSManager:
         Logo IDM token for Authentication & Authorization
     """
 
-    def __init__(self, dys_base_url, idm_token):
+    def __init__(self, dys_base_url, idm_token, corid=None):
         if None in (dys_base_url, idm_token):
             raise ValueError("DYS Base Url or IDM Token cannot be None!")
         if dys_base_url[-1] == '/':
@@ -62,6 +64,7 @@ class DYSManager:
         self.HEADERS = {
             "Authorization": "Bearer " + self.TOKEN,
         }
+        self.corid = corid
 
     def get_url(self, task: str):
         """
@@ -75,18 +78,22 @@ class DYSManager:
     @staticmethod
     def check_dys_exception(response: requests.Response):
         code = response.status_code
-        logging.debug(code)
-        logging.debug(response.text)
+
+        if int(code / 100) == 2:
+            logging.debug({'status_code': code, 'dys_response': response.text})
+        else:
+            logging.error({'status_code': code, 'dys_response': response.text})
+
         if code == 400:
-            raise DysBadRequestError()
+            raise dys_exc.DysBadRequestError()
         elif code == 401:
-            raise DysUnauthorizedError()
+            raise dys_exc.DysUnauthorizedError()
         elif code == 500:
-            raise DysInternalServerError()
+            raise dys_exc.DysInternalServerError()
         elif code == 502:
-            raise DysBadGatewayError()
+            raise dys_exc.DysBadGatewayError()
         elif int(code / 100) != 2:
-            raise DysHttpException(status_code=code)
+            raise dys_exc.DysHttpException(status_code=code)
 
     def make_dys_request(self, method: str, url: str, headers=None, **kwargs):
         """
@@ -99,6 +106,11 @@ class DYSManager:
         """
         if not headers:
             headers = self.HEADERS.copy()
+        if self.corid:
+            headers.update({'corid', self.corid})
+
+        logging.info({**{'method': method, 'url': url}, **kwargs})
+
         response = requests.request(method, url, headers=headers, **kwargs)
         self.check_dys_exception(response)
         return response
@@ -131,7 +143,7 @@ class DYSManager:
         """
         url = self.get_url("UPLOAD_FOLDER") + "?parentFolderCid=" + parent_folder_cid + "&folderName=" + folder_name
         headers = self.HEADERS.copy()
-        headers["Content-Type"] = "application/json;charset=UTF-8"
+        headers["Content-Type"] = f"{DEFAULT_HEADER};charset=UTF-8"
         response = self.make_dys_request("POST", url, headers=headers)
         value_parent = json.loads(response.text)
         return value_parent["cid"]
@@ -163,7 +175,7 @@ class DYSManager:
         url = self.get_url(
             "DIR_STRUCTURE") + f'?folderCid={folder_cid}&from={_from}&size={_to}&containerType={cont_type.name} '
         headers = self.HEADERS.copy()
-        headers["Content-Type"] = "application/json"
+        headers["Content-Type"] = DEFAULT_HEADER
         res = self.make_dys_request("GET", url, headers=headers)
         dir_list = json.loads(res.text)
         return dir_list
@@ -176,7 +188,7 @@ class DYSManager:
         """
         url = self.get_url("GET_DOC_META").format(cid=doc_cid)
         headers = self.HEADERS.copy()
-        headers["Content-Type"] = "application/json"
+        headers["Content-Type"] = DEFAULT_HEADER
         res = json.loads(self.make_dys_request("GET", url, headers=headers).text)
         metadata = res["varValues"]
         return metadata
@@ -193,7 +205,7 @@ class DYSManager:
         pay_dict = {"documentTypeIds": [], "tagIds": [doc_type_id], "varValues": metadata}
         payload = json.dumps(pay_dict).encode("utf-8")
         headers = {
-            "Content-Type": "application/json;charset=UTF-8",
+            "Content-Type": f"{DEFAULT_HEADER};charset=UTF-8",
             "Authorization": "Bearer " + self.TOKEN,
         }
         res = self.make_dys_request("PUT", url, headers=headers, data=payload)
@@ -207,7 +219,7 @@ class DYSManager:
         """
         url = self.get_url("GET_DOC_INFO").format(cid=doc_cid)
         headers = self.HEADERS.copy()
-        headers["Content-Type"] = "application/json"
+        headers["Content-Type"] = DEFAULT_HEADER
         res = self.make_dys_request("GET", url, headers=headers)
         document = json.loads(res.text)
         return document
@@ -221,7 +233,7 @@ class DYSManager:
         """
         url = self.get_url("EXTERNAL_SHARE").format(cid=doc_cid)
         headers = self.HEADERS.copy()
-        headers["Content-Type"] = "application/json;charset=UTF-8"
+        headers["Content-Type"] = f"{DEFAULT_HEADER};charset=UTF-8"
         response = self.make_dys_request("GET", url, headers=headers)
         value = json.loads(response.text)
         return list(map(lambda link: link + "&hideName={}".format(hide_name), (item['shareLink'] for item in value)))
@@ -232,7 +244,7 @@ class DYSManager:
                                 download_disabled: bool = False,
                                 duration_day: int = 0,
                                 idm_external_share: bool = True,
-                                verification_type: int = VerificationType.NONE
+                                verification_type = VerificationType.NONE
                                 ):
         """
         Generate external share url for a document.
@@ -248,7 +260,7 @@ class DYSManager:
         """
         url = self.get_url("EXTERNAL_SHARE").format(cid=doc_cid)
         headers = self.HEADERS.copy()
-        headers["Content-Type"] = "application/json;charset=UTF-8"
+        headers["Content-Type"] = f"{DEFAULT_HEADER};charset=UTF-8"
         payload = {
             "authorizationRoleList": role_id_list,
             "cancelled": "false",
@@ -279,7 +291,7 @@ class DYSManager:
         """
         url = self.get_url("DOC_CONTENT").format(cid=doc_cid)
         headers = self.HEADERS.copy()
-        headers["Content-Type"] = "application/json"
+        headers["Content-Type"] = DEFAULT_HEADER
         response = self.make_dys_request("GET", url, headers=headers)
         value = response.text
         return value
@@ -295,9 +307,9 @@ class DYSManager:
         comes with Copy of or - Kopya
         :return: Cid of the new document.
         """
-        url = end_point = self.get_url("COPY").format(cid=doc_cid)
+        url = self.get_url("COPY").format(cid=doc_cid)
         headers = self.HEADERS.copy()
-        headers["Content-Type"] = "application/json"
+        headers["Content-Type"] = DEFAULT_HEADER
         if x_lang:
             headers["X-Lang"] = x_lang
         params = {"addCopyOfPrefix": add_copy_of_prefix}
@@ -348,6 +360,6 @@ class DYSManager:
         for item in dir_list:
             try:
                 self.delete(item["cid"])
-            except Exception as e:
-                raise DysClearDirectoryItemDeleteException()
+            except Exception:
+                raise dys_exc.DysClearDirectoryItemDeleteException()
         return cid

@@ -107,7 +107,7 @@ class DYSManager:
         if not headers:
             headers = self.HEADERS.copy()
         if self.corid:
-            headers.update({'corid', self.corid})
+            headers.update({'corid': self.corid})
 
         logging.info({**{'method': method, 'url': url}, **kwargs})
 

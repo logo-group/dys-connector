@@ -104,12 +104,14 @@ class DYSManager:
         :param kwargs: (optional) Optional parameters of request method. Ex: data, files etc.
         :return: :class:`Response <Response>` object
         """
+        log = {**{'method': method, 'url': url}, **kwargs}
         if not headers:
             headers = self.HEADERS.copy()
         if self.corid:
             headers.update({'corid': self.corid})
+            log.update({'corid': self.corid})
 
-        logging.info({**{'method': method, 'url': url}, **kwargs})
+        logging.info(log)
 
         response = requests.request(method, url, headers=headers, **kwargs)
         self.check_dys_exception(response)

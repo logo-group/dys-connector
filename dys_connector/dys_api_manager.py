@@ -271,7 +271,6 @@ class DYSManager:
             "durationDay": duration_day,
             "idmExternalShare": str(idm_external_share).lower(),
             "ignoreKafka": "true",
-            "linkShare": "false",
             "passwordProtected": "false",
             "uploadEnabled": "false",
             "verificationType": verification_type.value[0]

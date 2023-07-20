@@ -44,6 +44,14 @@ class DysBadGatewayError(DysHttpException):
         super().__init__(status_code=self.status_code, message=message)
 
 
+class DysServiceTemporarilyUnavailable(DysHttpException):
+    """Raised when Dys Service Temporarily Unavailable occurs with error code 503"""
+    def __init__(self, message="Dys Service Temporarily Unavailable!"):
+        self.status_code = 503
+        self.message = message
+        super().__init__(status_code=self.status_code, message=message)
+
+
 class DysClearDirectoryItemDeleteException(DysHttpException):
     """Raised when Dys Internal Server Error occurs with error code 500"""
     def __init__(self, message="Clear Directory Item Delete Exception"):

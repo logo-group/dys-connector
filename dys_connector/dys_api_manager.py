@@ -244,8 +244,6 @@ class DYSManager:
                                 role_id_list: list = [],
                                 disposable: bool = False,
                                 download_disabled: bool = False,
-                                duration_day: int = 0,
-                                idm_external_share: bool = True,
                                 verification_type = VerificationType.NONE
                                 ):
         """
@@ -255,8 +253,6 @@ class DYSManager:
         :param role_id_list:
         :param disposable:
         :param download_disabled:
-        :param duration_day: External share duration as day, default 0 refers to limitless.
-        :param idm_external_share: IDM External Share defaults to True
         :param verification_type:
         :return: External share url string
         """
@@ -268,8 +264,6 @@ class DYSManager:
             "cancelled": "false",
             "disposable": str(disposable).lower(),
             "downloadDisabled": str(download_disabled).lower(),
-            "durationDay": duration_day,
-            "idmExternalShare": str(idm_external_share).lower(),
             "ignoreKafka": "true",
             "passwordProtected": "false",
             "uploadEnabled": "false",
@@ -277,6 +271,8 @@ class DYSManager:
         }
         if len(role_id_list) == 0:
             del payload['authorizationRoleList']
+        if verification_type is VerificationType.IDM:
+            payload.update({"idmExternalShare": "true"})
         payload = json.dumps(payload)
         response = self.make_dys_request("POST", url, headers=headers, data=payload)
         value = json.loads(response.text)

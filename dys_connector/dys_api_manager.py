@@ -92,6 +92,8 @@ class DYSManager:
             raise dys_exc.DysInternalServerError()
         elif code == 502:
             raise dys_exc.DysBadGatewayError()
+        elif code == 503:
+            raise dys_exc.DysServiceTemporarilyUnavailable()
         elif int(code / 100) != 2:
             raise dys_exc.DysHttpException(status_code=code)
 

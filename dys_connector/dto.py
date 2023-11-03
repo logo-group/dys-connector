@@ -47,4 +47,4 @@ class UploadDocumentDTO:
 class SharingDTO(BaseModel):
     recipientId: Optional[str] = ""
     role: Optional[str] = SharingRole.CONSUMER.value
-    customEnabled: True
+    customEnabled: Optional[bool] = True

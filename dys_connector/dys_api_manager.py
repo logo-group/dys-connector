@@ -20,6 +20,7 @@ ENDPOINTS = {
     "UPDATE_DOC_META": "/api/v2.0/document/updateMetadata/{cid}",
     "GET_DOC_INFO": "/api/v2.0/document/getDocumentWithoutContent/{cid}",
     "EXTERNAL_SHARE": "/api/v2.0/document/externalShare/{cid}",
+    "LINK_EXTERNAL_SHARE": "/api/v2.0/document/linkExternalShare/{cid}",
     "DOC_CONTENT": "/api/v2.0/document/content/{cid}",
     "DELETE": "/api/v2.0/document/delete/{cid}",
     "DELETE_PERMA": "/api/v2.0/document/deletePermanently/{cid}"
@@ -277,6 +278,22 @@ class DYSManager:
             payload.update({"idmExternalShare": "true"})
         payload = json.dumps(payload)
         response = self.make_dys_request("POST", url, headers=headers, data=payload)
+        value = json.loads(response.text)
+        external_url = value["externalShareMailLinkMap"][
+                           next(iter(value["externalShareMailLinkMap"]))] + "&hideName={}".format(hide_name)
+        return external_url
+
+    def generate_link_external_share(self, doc_cid: str, hide_name: bool = True):
+        """
+        Generate all public external share url for a document.
+        :param doc_cid: Document Cid
+        :param hide_name: bool: Hide document name on external share.
+        :return: External share url string
+        """
+        url = self.get_url("LINK_EXTERNAL_SHARE").format(cid=doc_cid)
+        headers = self.HEADERS.copy()
+        headers["Content-Type"] = f"{DEFAULT_HEADER};charset=UTF-8"
+        response = self.make_dys_request("POST", url, headers=headers)
         value = json.loads(response.text)
         external_url = value["externalShareMailLinkMap"][
                            next(iter(value["externalShareMailLinkMap"]))] + "&hideName={}".format(hide_name)

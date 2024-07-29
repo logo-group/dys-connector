@@ -161,10 +161,12 @@ class DYSManager:
         :param files: File list. Ex: [("file", (doc["filename"], doc["file"], "text/html"))]
         :return: :class:`Response <Response>` object
         """
-        url = self.get_url("UPLOAD_DOCUMENT") + "?parentFolderCid=" + parent_folder_cid
-        headers = self.HEADERS.copy()
-        headers["Content-Type"] = "multipart/form-data"
-        response = self.make_dys_request("POST", url, data=payload, files=files)
+        url = self.get_url("UPLOAD_DOCUMENT")
+        params = {
+            "parentFolderCid": parent_folder_cid,
+            "mimeType": "text/html"
+        }
+        response = self.make_dys_request("POST", url, data=payload, files=files, params=params)
         return response
 
     def get_dir_structure(self, folder_cid: str, _from: int = 0, _to: int = 10000,
@@ -309,8 +311,8 @@ class DYSManager:
         headers = self.HEADERS.copy()
         headers["Content-Type"] = DEFAULT_HEADER
         response = self.make_dys_request("GET", url, headers=headers)
-        value = response.text
-        return value
+
+        return response
 
     def copy_document(self, doc_cid: str, parent_folder_cid: str = None, x_lang: str = None,
                       add_copy_of_prefix: bool = False):

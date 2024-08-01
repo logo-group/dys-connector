@@ -41,6 +41,7 @@ class Container(Enum):
     SEARCH_EVERYWHERE = "SEARCH_EVERYWHERE"
     SHARED_BY_ME = "SHARED_BY_ME"
     SPACE_SHARE_INNER = "SPACE_SHARE_INNER"
+    EXTERNAL_SHARE = "EXTERNAL_SHARE"
 
 
 class DYSManager:
@@ -170,17 +171,17 @@ class DYSManager:
         return response
 
     def get_dir_structure(self, folder_cid: str, _from: int = 0, _to: int = 10000,
-                          cont_type: Container = Container.SPACE):
+                          cont_group: Container = Container.SPACE):
         """
         Get content list of a directory.
         :param folder_cid: Directory Cid
         :param _from: (default:0) Ignore files till from parameter
         :param _to: (default:10000) File limit. DYS supports maximum 10000 for structure request.
-        :param cont_type: Container type defaults to SPACE
+        :param cont_group: Container type defaults to SPACE
         :return: List of Dicts. Each dict refers the basic information of a document.
         """
         url = self.get_url(
-            "DIR_STRUCTURE") + f'?folderCid={folder_cid}&from={_from}&size={_to}&containerType={cont_type.name} '
+            "DIR_STRUCTURE") + f"?folderCid={folder_cid}&from={_from}&size={_to}&containerGroup={cont_group.name}"
         headers = self.HEADERS.copy()
         headers["Content-Type"] = DEFAULT_HEADER
         res = self.make_dys_request("GET", url, headers=headers)
@@ -374,7 +375,7 @@ class DYSManager:
         :param cid: Dys Cid
         :return: Cid of folder
         """
-        dir_list = self.get_dir_structure(folder_cid=cid, cont_type=Container.DIRECTORY)
+        dir_list = self.get_dir_structure(folder_cid=cid, cont_group=Container.DIRECTORY)
         for item in dir_list:
             try:
                 self.delete(item["cid"])

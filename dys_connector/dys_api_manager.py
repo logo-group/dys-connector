@@ -1,9 +1,9 @@
 import json
 import logging
 import requests
-import dys_connector.exceptions as dys_exc
-
 from enum import Enum
+
+import dys_connector.exceptions as dys_exc
 from dys_connector.dto import VerificationType
 
 DEFAULT_HEADER = "application/json"
@@ -170,8 +170,8 @@ class DYSManager:
         response = self.make_dys_request("POST", url, data=payload, files=files, params=params)
         return response
 
-    def get_dir_structure(self, folder_cid: str, _from: int = 0, _to: int = 10000,
-                          cont_group: Container = Container.SPACE):
+    def get_dir_structure(self, folder_cid: str, cont_group: Container = Container.DOCUMENT, _from: int = 0,
+                          _to: int = 10000):
         """
         Get content list of a directory.
         :param folder_cid: Directory Cid
@@ -250,7 +250,7 @@ class DYSManager:
                                 role_id_list: list = [],
                                 disposable: bool = False,
                                 download_disabled: bool = False,
-                                verification_type = VerificationType.NONE
+                                verification_type=VerificationType.NONE
                                 ):
         """
         Generate external share url for a document.
@@ -375,7 +375,7 @@ class DYSManager:
         :param cid: Dys Cid
         :return: Cid of folder
         """
-        dir_list = self.get_dir_structure(folder_cid=cid, cont_group=Container.DIRECTORY)
+        dir_list = self.get_dir_structure(folder_cid=cid)
         for item in dir_list:
             try:
                 self.delete(item["cid"])

@@ -170,7 +170,7 @@ class DYSManager:
         response = self.make_dys_request("POST", url, data=payload, files=files, params=params)
         return response
 
-    def get_dir_structure(self, folder_cid: str, cont_group: Container = Container.DOCUMENT, _from: int = 0,
+    def get_dir_structure(self, folder_cid: str, cont_group: Container = Container.DIRECTORY, _from: int = 0,
                           _to: int = 10000):
         """
         Get content list of a directory.

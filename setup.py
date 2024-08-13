@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import pathlib
 
-VERSION = '0.2.28'
+VERSION = '0.2.29'
 DESCRIPTION = 'Logo DYS Connector API Python Implementation'
 
 # The directory containing this file

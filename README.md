@@ -18,7 +18,7 @@ manager = DYSManager(dys_base_url, idm_token)
 state = manager.check_state()
 
 # Post Content to DYS
-parent_folder_cid = "111111111111111111111"
+parent_folder_cid = "11111111111111111111"
 doc_tag_id = "123123123123"
 doc = {"file": open_file("testdoc1.html"), "filename": "testdoc1.html", "metadata": None}
 f = [("file", (doc["filename"], doc["file"], "text/html"))]

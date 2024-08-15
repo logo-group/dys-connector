@@ -181,7 +181,7 @@ class DYSManager:
         :return: List of Dicts. Each dict refers the basic information of a document.
         """
         url = self.get_url(
-            "DIR_STRUCTURE") + f"?folderCid={folder_cid}&from={_from}&size={_to}&containerGroup={cont_group.name}"
+            "DIR_STRUCTURE") + f"?folderCid={folder_cid}&from={_from}&size={_to}&containerType={cont_group.name}"
         headers = self.HEADERS.copy()
         headers["Content-Type"] = DEFAULT_HEADER
         res = self.make_dys_request("GET", url, headers=headers)

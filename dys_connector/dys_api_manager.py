@@ -12,7 +12,7 @@ DEFAULT_HEADER = "application/json"
 ENDPOINTS = {
     "COPY": "/api/v2.0/document/copy/{cid}",
     "RENAME": "/api/v2.0/document/rename/{cid}",
-    "UPLOAD_DOCUMENT": "/api/v2.0/document/uploadDocument",
+    "UPLOAD_DOCUMENT": "/api/v3.0/document/uploadDocument",
     "UPLOAD_FOLDER": "/api/v2.0/document/uploadFolder",
     "STATE": "/api/diagnose",
     "DIR_STRUCTURE": "/api/v2.0/document/directoryStructure",
@@ -181,7 +181,7 @@ class DYSManager:
         :return: List of Dicts. Each dict refers the basic information of a document.
         """
         url = self.get_url(
-            "DIR_STRUCTURE") + f"?folderCid={folder_cid}&from={_from}&size={_to}&containerGroup={cont_group.name}"
+            "DIR_STRUCTURE") + f"?folderCid={folder_cid}&from={_from}&size={_to}&containerType={cont_group.name}"
         headers = self.HEADERS.copy()
         headers["Content-Type"] = DEFAULT_HEADER
         res = self.make_dys_request("GET", url, headers=headers)

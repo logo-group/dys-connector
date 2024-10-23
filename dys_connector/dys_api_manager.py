@@ -12,7 +12,7 @@ DEFAULT_HEADER = "application/json"
 ENDPOINTS = {
     "COPY": "/api/v2.0/document/copy/{cid}",
     "RENAME": "/api/v2.0/document/rename/{cid}",
-    "UPLOAD_DOCUMENT": "/api/v2.0/document/uploadDocument",
+    "UPLOAD_DOCUMENT": "/api/v3.0/document/uploadDocument",
     "UPLOAD_FOLDER": "/api/v2.0/document/uploadFolder",
     "STATE": "/api/diagnose",
     "DIR_STRUCTURE": "/api/v2.0/document/directoryStructure",
